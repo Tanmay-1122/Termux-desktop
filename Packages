@@ -1,0 +1,20 @@
+Package: termux-dex
+Version: 1.0
+Architecture: all
+Maintainer: Tanmay-1122 <https://github.com/Tanmay-1122>
+Depends: xfce4, termux-x11-nightly, pulseaudio, dbus, wget, unzip, tigervnc, xrdp
+Filename: ./termux-dex_1.0_all.deb
+Size: 2372
+MD5sum: acb7006a7337adac245f6849a34f1342
+SHA1: 23bda55a077124e424fd7e73181596cb13c7a31e
+SHA256: 0e84df57beb2a5e08dafc79a46286989e3b0e98a8ecc296a64893db601aade6e
+Description: Termux Desktop — Full Linux desktop environment for Android
+ Converts any Android phone into a working Linux desktop using XFCE.
+ Supports three display modes: Termux:X11 (hardware-accelerated),
+ xRDP (Windows Remote Desktop), and noVNC (browser access).
+ .
+ After install, run: bash ~/setup.sh
+ Then start the desktop: bash ~/start-desktop.sh
+ .
+ Homepage: https://github.com/Tanmay-1122/Termux-desktop
+
