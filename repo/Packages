@@ -125,10 +125,10 @@ Architecture: all
 Maintainer: Tanmay-1122 <https://github.com/Tanmay-1122>
 Depends: bash
 Filename: ./termux-dex_1.5_all.deb
-Size: 20540
-MD5sum: 1e90340eb4c46b38d11315d835ffd1c2
-SHA1: ab0611cef946ec127600c9ecaccc180fa6bdc009
-SHA256: 9dbcbfca7ae869c7aee7ea231c67d0cf88ed695a53d536402a6d6102c549c9f7
+Size: 20532
+MD5sum: 5b7f486ac67c82387adaf63ef2b781ba
+SHA1: 30ba91d635f8020f8317c9fad3f79a3618362612
+SHA256: 918ddca2f09643759608c5380ea8815acaf85116b70e5186c3abc5f411f0e937
 Description: Termux Desktop - lightweight installer and launcher for Android
  Installs the termux-dex setup and desktop launcher scripts without forcing
  a large desktop download during package installation.
