@@ -320,133 +320,28 @@ step "Installing dependencies"
 termux-wake-lock 2>/dev/null || true
 info "Wake lock acquired"
 
-# ── Mirror Registry (top 3 per region, by bandwidth) ────────
-MIRROR_ASIA=(
-    "https://mirrors.ravidwivedi.in/termux/termux-main"
-    "https://termux.niranjan.co/termux-main"
-    "https://mirror.twds.com.tw/termux/termux-main"
-)
-MIRROR_EUROPE=(
-    "https://ftp.fau.de/termux/termux-main"
-    "https://mirror.bouwhuis.network/termux/termux-main"
-    "https://grimler.se/termux/termux-main"
-)
-MIRROR_NA=(
-    "https://packages-cf.termux.dev/apt/termux-main"
-    "https://plug-mirror.rcac.purdue.edu/termux/termux-main"
-    "https://mirrors.utermux.dev/termux/termux-main"
-)
-GLOBAL_FALLBACK="https://packages-cf.termux.dev/apt/termux-main"
-OFFICIAL_X11="https://packages-cf.termux.dev/apt/termux-x11"
-
-# ── Geo-detect region (fast, <2s) ──────────────────────────
-detect_region() {
-    local cc
-    cc=$(wget -q -O- --timeout=3 "https://ipapi.co/json/" 2>/dev/null \
-        | grep -o '"country_code":"[^"]*"' | cut -d'"' -f4 2>/dev/null)
-    case "${cc^^}" in
-        IN|PK|BD|LK|NP|MM|TH|VN|MY|ID|PH|SG|TW|JP|KR|CN|HK|BN|KH|LA) echo "asia" ;;
-        AU|NZ) echo "asia" ;;
-        DE|GB|FR|NL|SE|FI|PL|ES|IT|PT|CH|AT|BE|DK|NO|IE|CZ|RO|HU|BG|HR|SK|SI|LT|LV|EE|LU|MT|CY|GR|IS|LI|MC|AD|SM|VA) echo "europe" ;;
-        US|CA|MX|BR|AR|CL|CO|PE|VE|EC|BO|PY|UY|PA|CR|NI|HN|GT|SV|DO|CU|JM|TT|GY|SR|GF|HT) echo "north_america" ;;
-        *) echo "unknown" ;;
-    esac
-}
-
-# ── Test mirrors in parallel (background jobs) ───────────────
-test_mirrors_parallel() {
-    local mirrors=("$@")
-    local tmpdir
-    tmpdir=$(mktemp -d 2>/dev/null || echo "/tmp/mirror_test_$$")
-    mkdir -p "$tmpdir"
-    local pids=()
-    local start_times=()
-
-    for i in "${!mirrors[@]}"; do
-        local mirror="${mirrors[$i]}"
-        local start_ms
-        start_ms=$(date +%s%N 2>/dev/null || echo "0")
-        wget -O "$tmpdir/r_$i" --timeout=5 --tries=1 \
-            -q "$mirror/dists/stable/InRelease" 2>/dev/null &
-        pids+=($!)
-        start_times+=($start_ms)
-    done
-
-    local best_mirror="" best_time=999999
-    for i in "${!pids[@]}"; do
-        wait "${pids[$i]}" 2>/dev/null
-        local end_ms
-        end_ms=$(date +%s%N 2>/dev/null || echo "0")
-        if [ -f "$tmpdir/r_$i" ] && [ -s "$tmpdir/r_$i" ]; then
-            local elapsed_ms=$(( (end_ms - ${start_times[$i]}) / 1000000 ))
-            [ "$elapsed_ms" -le 0 ] && elapsed_ms=1
-            if [ "$elapsed_ms" -lt "$best_time" ]; then
-                best_time=$elapsed_ms
-                best_mirror="${mirrors[$i]}"
-            fi
-        fi
-        rm -f "$tmpdir/r_$i" 2>/dev/null
-    done
-
-    rm -rf "$tmpdir" 2>/dev/null
-    echo "$best_mirror"
-}
-
-# ── Auto-select fastest mirror ───────────────────────────────
-info "Finding fastest mirror for your region..."
-FASTEST_MIRROR=""
-
-if command -v wget &>/dev/null; then
-    REGION=$(detect_region)
-    info "Region: $REGION"
-
-    case "$REGION" in
-        asia)          CANDIDATES=("${MIRROR_ASIA[@]}") ;;
-        europe)        CANDIDATES=("${MIRROR_EUROPE[@]}") ;;
-        north_america) CANDIDATES=("${MIRROR_NA[@]}") ;;
-        unknown)       CANDIDATES=("${MIRROR_NA[@]}" "${MIRROR_EUROPE[@]}" "${MIRROR_ASIA[@]}") ;;
-    esac
-
-    FASTEST_MIRROR=$(test_mirrors_parallel "${CANDIDATES[@]}")
-
-    if [ -z "$FASTEST_MIRROR" ]; then
-        info "Regional test failed — testing global top mirrors..."
-        GLOBAL_CANDIDATES=("${MIRROR_NA[0]}" "${MIRROR_EUROPE[0]}" "${MIRROR_ASIA[0]}")
-        FASTEST_MIRROR=$(test_mirrors_parallel "${GLOBAL_CANDIDATES[@]}")
-    fi
-
-    if [ -z "$FASTEST_MIRROR" ]; then
-        FASTEST_MIRROR="$GLOBAL_FALLBACK"
-    fi
-fi
-
-# Apply mirror configuration
-if [ -n "$FASTEST_MIRROR" ]; then
-    info "Using mirror: $FASTEST_MIRROR"
-
-    # Only derive a matching x11 mirror URL if that mirror actually serves
-    # a termux-x11 tree. Most community mirrors only carry termux-main, so
-    # blindly rewriting the path (old behaviour) produced a 404 repo entry
-    # and left termux-x11-nightly / xfce4 unresolved. We verify first and
-    # fall back to the official CDN (which always has it) otherwise.
-    X11_MIRROR_CANDIDATE=$(echo "$FASTEST_MIRROR" | sed 's|termux-main|termux-x11|')
-    if [ "$X11_MIRROR_CANDIDATE" != "$FASTEST_MIRROR" ] && \
-       wget -q --timeout=5 --tries=1 -O /dev/null "$X11_MIRROR_CANDIDATE/dists/x11/InRelease" 2>/dev/null; then
-        X11_MIRROR="$X11_MIRROR_CANDIDATE"
-    else
-        X11_MIRROR="$OFFICIAL_X11"
-        info "Regional mirror has no x11 tree — using official x11 mirror instead"
-    fi
-
-    mkdir -p "$PREFIX/etc/apt"
-    cat > "$PREFIX/etc/apt/sources.list" << MIRROR_EOF
-deb $FASTEST_MIRROR stable main
-deb $X11_MIRROR x11 main
+# ── Repair / reset APT sources ────────────────────────────────
+# NOTE: this used to auto-detect region and race community mirrors,
+# rewriting sources.list to whichever "won". That's what caused the
+# earlier failures: on networks where the speed-test itself fails
+# (as happened here), it silently left behind a leftover/unrecognized
+# sources.list from a prior run — which broke pkg's mirror detection
+# ("No mirror or mirror group selected") and meant the x11 repo never
+# actually got indexed, even though `pkg install x11-repo` reported
+# success. Community mirrors are also inconsistent about carrying the
+# x11 tree at all.
+#
+# Trade speed for reliability: always reset to Termux's official
+# Cloudflare-backed mirror, which is guaranteed to carry both repos.
+info "Resetting APT sources to the official Termux mirror..."
+mkdir -p "$PREFIX/etc/apt"
+cat > "$PREFIX/etc/apt/sources.list" << 'MIRROR_EOF'
+deb https://packages-cf.termux.dev/apt/termux-main stable main
 MIRROR_EOF
-    ok "Mirror configured"
-else
-    warn "Could not test mirrors — using default"
-fi
+# Clear out any leftover/duplicate x11 source from a previous broken run,
+# so x11-repo's own installer can add a clean, correct one below.
+rm -f "$PREFIX/etc/apt/sources.list.d/"*x11* 2>/dev/null || true
+ok "APT sources reset"
 
 # ── Enable apt parallel downloads (10 simultaneous) ──────────
 mkdir -p "$PREFIX/etc/apt/apt.conf.d"
@@ -474,6 +369,22 @@ info "Adding x11 repository..."
 spinner_run "x11-repo & eatmydata" "$LOG_FILE" pkg install -y x11-repo eatmydata || true
 spinner_run "Updating with x11 repo" "$LOG_FILE" pkg update -y || true
 ok "x11-repo ready"
+
+# Verify the x11 index actually resolved — x11-repo installing "successfully"
+# doesn't guarantee its source file is valid/reachable. If xfce4 (an x11-repo
+# package) isn't visible yet, force a clean re-add before wasting 3 retries
+# inside install_pkgs on something a repair can fix in one shot.
+if ! apt-cache show xfce4 >/dev/null 2>&1; then
+    warn "x11 package index not resolving yet — repairing and retrying"
+    rm -f "$PREFIX/etc/apt/sources.list.d/"*x11* 2>/dev/null || true
+    spinner_run "Re-adding x11-repo" "$LOG_FILE" pkg install -y --reinstall x11-repo || true
+    spinner_run "Updating with x11 repo (retry)" "$LOG_FILE" pkg update -y || true
+    if apt-cache show xfce4 >/dev/null 2>&1; then
+        ok "x11 index now resolving"
+    else
+        warn "x11 index still not resolving — core desktop install will likely fail; check $LOG_FILE"
+    fi
+fi
 
 # Core packages
 install_pkgs "core desktop" xfce4 termux-x11-nightly pulseaudio dbus wget unzip aria2 xrdp tigervnc websockify
