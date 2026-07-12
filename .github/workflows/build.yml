@@ -1,0 +1,98 @@
+name: Build & Publish Package
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'termux-dex-pkgsrc/**'
+      - 'install.sh'
+      - '*.sh'
+      - 'gtk-base.css'
+      - 'picom.conf'
+      - 'VERSION'
+      - 'sha256sums.txt'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:   # allow manual trigger from GitHub UI
+
+permissions:
+  contents: write    # needed to push repo/ updates back
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── 2. Install build tools ─────────────────────────────────
+      - name: Install dpkg tools
+        run: sudo apt-get install -y dpkg-dev apt-utils
+
+      # ── 3. Build .deb ──────────────────────────────────────────
+      - name: Build termux-dex .deb
+        run: |
+          set -e
+          SRC="termux-dex-pkgsrc/termux-dex_1.0_all"
+
+          # Read version from VERSION file
+          VERSION=$(cat VERSION 2>/dev/null || grep '^Version:' "$SRC/DEBIAN/control" | awk '{print $2}')
+          DEB_NAME="termux-dex_${VERSION}_all.deb"
+
+          echo "Building $DEB_NAME from $SRC ..."
+
+          # Fix permissions on maintainer scripts (required by dpkg-deb)
+          chmod 755 "$SRC/DEBIAN/postinst" "$SRC/DEBIAN/postrm" 2>/dev/null || true
+
+          # Fix permissions on installed scripts
+          find "$SRC/data" -type f -name "*.sh" -exec chmod 755 {} \;
+
+          # Build the package
+          dpkg-deb --build --root-owner-group "$SRC" "repo/$DEB_NAME"
+          echo "Built: repo/$DEB_NAME"
+
+          # Save version for next steps
+          echo "DEB_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "DEB_NAME=$DEB_NAME"   >> "$GITHUB_ENV"
+
+      # ── 4. Update Packages index ───────────────────────────────
+      - name: Update apt Packages index
+        run: |
+          set -e
+          cd repo
+
+          # Remove old Packages files so they are fully regenerated
+          rm -f Packages Packages.gz
+
+          # Generate fresh Packages file
+          dpkg-scanpackages --multiversion . > Packages
+          gzip -k -f Packages   # create Packages.gz alongside Packages
+
+          echo "Generated Packages:"
+          cat Packages
+
+      # ── 5. Regenerate SHA-256 checksums ────────────────────────
+      - name: Regenerate sha256sums.txt
+        run: |
+          set -e
+          cd "$GITHUB_WORKSPACE"
+          sha256sum *.sh gtk-base.css picom.conf VERSION > sha256sums.txt
+          echo "Regenerated sha256sums.txt"
+
+      # ── 6. Commit & push ───────────────────────────────────────
+      - name: Commit updated repo/ and checksums
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add repo/ sha256sums.txt
+          # Only commit if there are actual changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "ci: rebuild termux-dex v${{ env.DEB_VERSION }} [skip ci]"
+            git push
+          fi

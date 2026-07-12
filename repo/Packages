@@ -1,0 +1,150 @@
+Package: termux-dex
+Version: 1.0
+Architecture: all
+Maintainer: Tanmay-1122 <https://github.com/Tanmay-1122>
+Depends: xfce4, termux-x11-nightly, pulseaudio, dbus, wget, unzip, tigervnc, xrdp
+Filename: ./termux-dex_1.0_all.deb
+Size: 17700
+MD5sum: adec3e302ab919bdfc3319192ae86efc
+SHA1: cc6a7ea00cb59c5a99d7ff3e18a046273d671bbb
+SHA256: 8bd5fc8f2cb6dd87f037a79965593b481ad2d474f70176706165c29acf703edd
+Description: Termux Desktop — Full Linux desktop environment for Android
+ Converts any Android phone into a working Linux desktop using XFCE.
+ Supports three display modes: Termux:X11 (hardware-accelerated),
+ xRDP (Windows Remote Desktop), and noVNC (browser access).
+ .
+ Setup, app installation, and theming run automatically right after
+ install — no manual steps required. Re-run any time with the
+ scripts placed in your home directory: setup.sh, start-desktop.sh,
+ manage-apps.sh, theme.sh, dashboard.sh.
+ .
+ Homepage: https://github.com/Tanmay-1122/Termux-desktop
+
+Package: termux-dex
+Version: 1.1
+Architecture: all
+Maintainer: Tanmay-1122 <https://github.com/Tanmay-1122>
+Depends: bash
+Filename: ./termux-dex_1.1_all.deb
+Size: 18816
+MD5sum: f3128ba68caa7cf1a82643e200ad2ed3
+SHA1: 4f0fda4faf7e14be35c15f47decdba4117b8df4d
+SHA256: 6dc40289b1b8c0fd743248aef99a7d63dcf804bb9b16ee1282d1da31444d20aa
+Description: Termux Desktop - lightweight installer and launcher for Android
+ Installs the termux-dex setup and desktop launcher scripts without forcing
+ a large desktop download during package installation.
+ .
+ Run setup.sh after install to fetch the desktop packages you actually want:
+ minimal for a fast Termux:X11 setup, standard for useful tools, or full for
+ the larger app catalogue.
+ .
+ Homepage: https://github.com/Tanmay-1122/Termux-desktop
+
+Package: termux-dex
+Version: 1.2
+Architecture: all
+Maintainer: Tanmay-1122 <https://github.com/Tanmay-1122>
+Depends: bash
+Filename: ./termux-dex_1.2_all.deb
+Size: 19240
+MD5sum: af11db356f9b69a77955653e57fcbced
+SHA1: a9727bb2e74edf73425c42f8db8d8187cca91d12
+SHA256: 7f74d03738beeb8d0ecea34792a5fe2780716148bcbf4ce431b4604919a73dd4
+Description: Termux Desktop - lightweight installer and launcher for Android
+ Installs the termux-dex setup and desktop launcher scripts without forcing
+ a large desktop download during package installation.
+ .
+ v1.2 fixes: missing apt Release file, shell-killing pgrep bug, set -e
+ footgun in install.sh, termux-x11-nightly step ordering, ifconfig
+ replaced with ip command on all scripts, arch guard for armv7 devices,
+ storage pre-flight check, cache-aware pkg update in manage-apps.sh.
+ .
+ Run setup.sh after install to fetch the desktop packages you actually want:
+ minimal for a fast Termux:X11 setup, standard for useful tools, or full for
+ the larger app catalogue.
+ .
+ Homepage: https://github.com/Tanmay-1122/Termux-desktop
+
+Package: termux-dex
+Version: 1.3
+Architecture: all
+Maintainer: Tanmay-1122 <https://github.com/Tanmay-1122>
+Depends: bash
+Filename: ./termux-dex_1.3_all.deb
+Size: 16258
+MD5sum: 471dc5ffa08d2653ba68f6b3b5f64e9e
+SHA1: c4e1c4ad907bc5ed9fa56a7c35bd49da4bc98c31
+SHA256: 7444e872db9e47fdc5d42a4e4d06e313834ce5ff59c5e1dcd55655c2e804d5c0
+Description: Termux Desktop - lightweight installer and launcher for Android
+ Installs the termux-dex setup and desktop launcher scripts without forcing
+ a large desktop download during package installation.
+ .
+ v1.2 fixes: missing apt Release file, shell-killing pgrep bug, set -e
+ footgun in install.sh, termux-x11-nightly step ordering, ifconfig
+ replaced with ip command on all scripts, arch guard for armv7 devices,
+ storage pre-flight check, cache-aware pkg update in manage-apps.sh.
+ .
+ Run setup.sh after install to fetch the desktop packages you actually want:
+ minimal for a fast Termux:X11 setup, standard for useful tools, or full for
+ the larger app catalogue.
+ .
+ Homepage: https://github.com/Tanmay-1122/Termux-desktop
+
+Package: termux-dex
+Version: 1.4
+Architecture: all
+Maintainer: Tanmay-1122 <https://github.com/Tanmay-1122>
+Depends: bash
+Filename: ./termux-dex_1.4_all.deb
+Size: 20162
+MD5sum: e9e1a380ae6ff009acc9446eed957728
+SHA1: c954f13c1fb6bc5b85f2ef1355eb110665866104
+SHA256: 65507740241b43d7dd1c530c09e8826daa4b193bf5294e9584cb686cdc50b1c4
+Description: Termux Desktop - lightweight installer and launcher for Android
+ Installs the termux-dex setup and desktop launcher scripts without forcing
+ a large desktop download during package installation.
+ .
+ v1.4 update: added out-of-the-box hardware acceleration (VirGL,
+ Zink, Turnip/Adreno drivers) with automatic Qualcomm Adreno detection
+ and fallback to software rendering.
+ .
+ v1.2 fixes: missing apt Release file, shell-killing pgrep bug, set -e
+ footgun in install.sh, termux-x11-nightly step ordering, ifconfig
+ replaced with ip command on all scripts, arch guard for armv7 devices,
+ storage pre-flight check, cache-aware pkg update in manage-apps.sh.
+ .
+ Run setup.sh after install to fetch the desktop packages you actually want:
+ minimal for a fast Termux:X11 setup, standard for useful tools, or full for
+ the larger app catalogue.
+ .
+ Homepage: https://github.com/Tanmay-1122/Termux-desktop
+
+Package: termux-dex
+Version: 1.5
+Architecture: all
+Maintainer: Tanmay-1122 <https://github.com/Tanmay-1122>
+Depends: bash
+Filename: ./termux-dex_1.5_all.deb
+Size: 20536
+MD5sum: 5b78b94fd3c385060a8fe99b185f1152
+SHA1: 2ac2e01235c9cac83edcda82e54d152d2525311d
+SHA256: bf1e7d129e3ca900dbab276abd65d6b5764a2e6ff7620dc5845f3333cbd3cfc1
+Description: Termux Desktop - lightweight installer and launcher for Android
+ Installs the termux-dex setup and desktop launcher scripts without forcing
+ a large desktop download during package installation.
+ .
+ v1.5 update: extracted shared lib.sh, GTK CSS template, added uninstall
+ script, SHA-256 integrity verification, unified VERSION numbering,
+ auto-install missing xrdp in RDP mode, CI fixes, ASCII-only output.
+ .
+ v1.2 fixes: missing apt Release file, shell-killing pgrep bug, set -e
+ footgun in install.sh, termux-x11-nightly step ordering, ifconfig
+ replaced with ip command on all scripts, arch guard for armv7 devices,
+ storage pre-flight check, cache-aware pkg update in manage-apps.sh.
+ .
+ Run setup.sh after install to fetch the desktop packages you actually want:
+ minimal for a fast Termux:X11 setup, standard for useful tools, or full for
+ the larger app catalogue.
+ .
+ Homepage: https://github.com/Tanmay-1122/Termux-desktop
+

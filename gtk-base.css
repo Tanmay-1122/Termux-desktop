@@ -1,0 +1,628 @@
+/* Termux Desktop theme: @THEME_NAME@ */
+@define-color theme_bg @BG@;
+@define-color theme_fg @FG@;
+@define-color theme_panel @PANEL@;
+@define-color theme_accent @ACCENT@;
+@define-color theme_border @BORDER@;
+
+* {
+  background-clip: padding-box;
+  -GtkDialog-button-spacing: 6;
+  -GtkDialog-content-area-border: 12;
+  -GtkDialog-action-area-border: 12;
+  -GtkScrolledWindow-scrollbar-spacing: 0;
+  -GtkTextView-error-underline-color: #e74c3c;
+  -GtkToolButton-icon-spacing: 4;
+  -GtkToolItemGroup-expander-size: 11;
+  -GtkWidget-cursor-aspect-ratio: 0.04;
+  -GtkWidget-focus-padding: 0;
+  -GtkWidget-focus-line-width: 0;
+  -GtkWidget-link-color: @theme_accent;
+  -GtkWidget-visited-link-color: shade(@theme_accent, 1.2);
+  -GtkWindow-resize-grip-height: 0;
+  -GtkWindow-resize-grip-width: 0;
+}
+
+window, dialog, assistant, app-notification {
+  background-color: @theme_bg;
+  color: @theme_fg;
+}
+
+.background {
+  background-color: @theme_bg;
+  color: @theme_fg;
+}
+
+headerbar, .titlebar, windowheader {
+  background-color: @theme_panel;
+  color: @theme_fg;
+  border-bottom: 1px solid @BORDER@;
+  box-shadow: 0 2px 6px @SHADOW@;
+  padding: 4px 6px;
+  min-height: 40px;
+}
+
+headerbar button.titlebutton {
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  min-width: 20px;
+  min-height: 20px;
+  padding: 2px;
+}
+
+headerbar button.titlebutton:hover {
+  background-color: alpha(@ACCENT_RGB@, 0.15);
+}
+
+button {
+  background-color: @theme_panel;
+  color: @theme_fg;
+  border: 1px solid @BORDER@;
+  border-radius: 6px;
+  padding: 5px 12px;
+  transition: all 120ms ease;
+  -GtkButton-default-border: 0;
+  -GtkButton-default-outside-border: 0;
+  -GtkButton-inner-border: 3;
+}
+
+button:hover {
+  border-color: @theme_accent;
+  background: alpha(@ACCENT_RGB@, 0.08);
+}
+
+button:active, button:checked {
+  background: alpha(@ACCENT_RGB@, 0.2);
+  color: @theme_accent;
+  border-color: @theme_accent;
+}
+
+button:disabled { opacity: 0.5; }
+
+button.flat {
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+button.flat:hover {
+  background: alpha(@ACCENT_RGB@, 0.1);
+  border-color: alpha(@ACCENT_RGB@, 0.2);
+}
+
+button.suggested-action {
+  background-color: @theme_accent;
+  color: @theme_bg;
+  border-color: @theme_accent;
+  font-weight: bold;
+}
+
+button.suggested-action:hover {
+  background-color: shade(@theme_accent, 1.1);
+}
+
+entry {
+  background-color: alpha(@BG_RGB@, 0.6);
+  color: @theme_fg;
+  border: 1px solid @BORDER@;
+  border-radius: 6px;
+  padding: 5px 8px;
+  transition: all 120ms ease;
+  caret-color: @theme_accent;
+}
+
+entry:focus {
+  border-color: @theme_accent;
+  box-shadow: 0 0 0 2px alpha(@ACCENT_RGB@, 0.15);
+  background-color: @theme_bg;
+}
+
+entry:disabled { opacity: 0.5; }
+
+entry selection {
+  background-color: alpha(@ACCENT_RGB@, 0.35);
+  color: @theme_fg;
+}
+
+entry.search-entry {
+  border-radius: 18px;
+  padding: 5px 14px;
+}
+
+combobox {
+  background-color: @theme_panel;
+  color: @theme_fg;
+  border: 1px solid @BORDER@;
+  border-radius: 6px;
+}
+
+combobox:hover { border-color: @theme_accent; }
+
+spinbutton {
+  background-color: @theme_panel;
+  color: @theme_fg;
+  border: 1px solid @BORDER@;
+  border-radius: 6px;
+}
+
+spinbutton button {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  min-width: 20px;
+}
+
+.view, GtkIconView, cellview {
+  background-color: @theme_bg;
+  color: @theme_fg;
+}
+
+.view:selected, GtkIconView:selected, cellview:selected {
+  background: alpha(@ACCENT_RGB@, 0.2);
+  color: @theme_fg;
+}
+
+.view:selected:focus, GtkIconView:selected:focus {
+  background: alpha(@ACCENT_RGB@, 0.25);
+}
+
+rubberband {
+  background-color: alpha(@ACCENT_RGB@, 0.15);
+  border: 1px solid @theme_accent;
+}
+
+treeview {
+  background-color: @theme_bg;
+  color: @theme_fg;
+  -GtkTreeView-vertical-separator: 0;
+  -GtkTreeView-expander-size: 14;
+}
+
+treeview:selected {
+  background: alpha(@ACCENT_RGB@, 0.18);
+  color: @theme_fg;
+}
+
+treeview.view:selected:focus {
+  background: alpha(@ACCENT_RGB@, 0.22);
+}
+
+treeview.view button,
+treeview.view button:hover,
+treeview.view button:active {
+  background: transparent;
+  border: none;
+}
+
+list {
+  background-color: @theme_bg;
+  color: @theme_fg;
+  border: none;
+}
+
+list row {
+  background-color: @theme_bg;
+  color: @theme_fg;
+  padding: 4px 8px;
+  border: none;
+}
+
+list row:selected {
+  background: alpha(@ACCENT_RGB@, 0.18);
+  color: @theme_fg;
+  border-radius: 4px;
+}
+
+list row:hover { background: alpha(@FG_RGB@, 0.04); }
+
+list row:selected:hover { background: alpha(@ACCENT_RGB@, 0.22); }
+
+notebook {
+  background-color: @theme_bg;
+  border: none;
+  -GtkNotebook-initial-gap: 0;
+  -GtkNotebook-arrow-spacing: 4;
+  -GtkNotebook-has-tab-gap: false;
+}
+
+notebook > header {
+  background-color: @theme_panel;
+  border: none;
+  box-shadow: inset 0 -1px 0 @BORDER@;
+}
+
+notebook tab {
+  background-color: transparent;
+  color: alpha(@FG_RGB@, 0.7);
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 6px 14px;
+  transition: all 120ms ease;
+}
+
+notebook tab:hover {
+  color: @theme_fg;
+  border-bottom-color: alpha(@ACCENT_RGB@, 0.4);
+}
+
+notebook tab:checked {
+  color: @theme_accent;
+  border-bottom: 2px solid @theme_accent;
+  background-color: transparent;
+}
+
+scrollbar {
+  background-color: transparent;
+  border: none;
+}
+
+scrollbar slider {
+  background-color: alpha(@ACCENT_RGB@, 0.35);
+  border-radius: 10px;
+  min-width: 5px;
+  min-height: 5px;
+  margin: 2px;
+  transition: all 120ms ease;
+}
+
+scrollbar slider:hover {
+  background-color: alpha(@ACCENT_RGB@, 0.6);
+  min-width: 7px;
+}
+
+scrollbar slider:active {
+  background-color: @theme_accent;
+  min-width: 7px;
+}
+
+scrollbar trough {
+  background-color: transparent;
+  border: none;
+}
+
+menu {
+  background-color: @theme_panel;
+  color: @theme_fg;
+  border: 1px solid @BORDER@;
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 4px 12px @SHADOW@;
+}
+
+menuitem {
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: background 80ms ease;
+}
+
+menuitem:hover { background-color: alpha(@ACCENT_RGB@, 0.13); }
+
+menuitem:disabled { opacity: 0.4; }
+
+menu separator, menuitem separator {
+  background-color: @BORDER@;
+  margin: 3px 6px;
+}
+
+popover {
+  background-color: @theme_panel;
+  color: @theme_fg;
+  border: 1px solid @BORDER@;
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 6px 16px @SHADOW@;
+}
+
+tooltip {
+  background-color: @theme_panel;
+  color: @theme_fg;
+  border: 1px solid @BORDER@;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+#XfcePanelWindow, .xfce4-panel {
+  background-color: @theme_panel;
+  color: @theme_fg;
+  border: none;
+  border-top: 1px solid @BORDER@;
+}
+
+#XfcePanelWindow button, .xfce4-panel button {
+  background: transparent;
+  color: @theme_fg;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  margin: 2px;
+  padding: 3px 9px;
+  transition: all 100ms ease;
+}
+
+#XfcePanelWindow button:hover, .xfce4-panel button:hover {
+  background-color: alpha(@ACCENT_RGB@, 0.12);
+  border-color: alpha(@ACCENT_RGB@, 0.25);
+}
+
+#XfcePanelWindow button:checked,
+#XfcePanelWindow button:active,
+.xfce4-panel button:checked,
+.xfce4-panel button:active {
+  background-color: alpha(@ACCENT_RGB@, 0.18);
+  border-bottom: 2px solid @theme_accent;
+  color: @theme_accent;
+}
+
+#whiskermenu-button {
+  background: transparent;
+  color: @theme_fg;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  margin: 2px;
+  padding: 3px 10px;
+  transition: all 100ms ease;
+}
+
+#whiskermenu-button:hover {
+  background-color: alpha(@ACCENT_RGB@, 0.12);
+  border-color: alpha(@ACCENT_RGB@, 0.25);
+}
+
+#whiskermenu-button:checked {
+  background-color: alpha(@ACCENT_RGB@, 0.18);
+  color: @theme_accent;
+}
+
+.tasklist button {
+  background: transparent;
+  color: @theme_fg;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  margin: 1px 2px;
+  padding: 2px 8px;
+  transition: all 100ms ease;
+}
+
+.tasklist button:hover { background-color: alpha(@FG_RGB@, 0.06); }
+
+.tasklist button:checked {
+  background-color: alpha(@ACCENT_RGB@, 0.14);
+  border-left: 2px solid @theme_accent;
+  color: @theme_accent;
+}
+
+progressbar {
+  background-color: @theme_panel;
+  border-radius: 5px;
+  border: 1px solid @BORDER@;
+}
+
+progressbar progress {
+  background-color: @theme_accent;
+  border-radius: 5px;
+}
+
+progressbar trough {
+  background-color: @theme_panel;
+  border-radius: 5px;
+  border: none;
+}
+
+scale { background-color: transparent; }
+
+scale trough {
+  background-color: @theme_panel;
+  border-radius: 4px;
+  min-height: 4px;
+  border: none;
+}
+
+scale highlight {
+  background-color: @theme_accent;
+  border-radius: 4px;
+}
+
+scale slider {
+  background-color: @theme_accent;
+  border-radius: 50%;
+  min-width: 14px;
+  min-height: 14px;
+  border: 2px solid @theme_bg;
+}
+
+check, radio {
+  background-color: @theme_panel;
+  border: 1px solid @BORDER@;
+  border-radius: 3px;
+  min-width: 14px;
+  min-height: 14px;
+}
+
+check:checked {
+  background-color: @theme_accent;
+  border-color: @theme_accent;
+}
+
+radio { border-radius: 50%; }
+
+radio:checked {
+  background-color: @theme_accent;
+  border-color: @theme_accent;
+}
+
+frame, .frame {
+  border: 1px solid @BORDER@;
+  border-radius: 6px;
+  padding: 4px;
+}
+
+separator { background-color: @BORDER@; }
+
+toolbar {
+  background-color: @theme_panel;
+  color: @theme_fg;
+  border: none;
+  padding: 3px;
+  border-bottom: 1px solid @BORDER@;
+}
+
+menubar {
+  background-color: @theme_panel;
+  color: @theme_fg;
+  border: none;
+  border-bottom: 1px solid @BORDER@;
+  padding: 2px 4px;
+}
+
+menubar > menuitem {
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+menubar > menuitem:hover { background-color: alpha(@ACCENT_RGB@, 0.12); }
+
+dialog.titlebar, dialog .titlebar { background-color: @theme_panel; }
+
+dialog .dialog-vbox {
+  background-color: @theme_bg;
+  padding: 12px;
+}
+
+dialog .dialog-action-area button {
+  padding: 6px 18px;
+  margin: 4px;
+}
+
+ThunarWindow {
+  background-color: @theme_bg;
+  color: @theme_fg;
+}
+
+ThunarView, ThunarIconView,
+thunar .view, thunar GtkIconView, thunar GtkTreeView {
+  background-color: @theme_bg;
+  color: @theme_fg;
+}
+
+thunar .view:selected,
+thunar GtkIconView:selected,
+thunar GtkTreeView:selected {
+  background: alpha(@ACCENT_RGB@, 0.2);
+  color: @theme_fg;
+}
+
+thunar .view:selected:focus,
+thunar GtkIconView:selected:focus {
+  background: alpha(@ACCENT_RGB@, 0.25);
+}
+
+thunar .sidebar, ThunarShortcutsPane,
+placessidebar, GtkPlacesSidebar {
+  background-color: alpha(@PANEL_RGB@, 0.4);
+  color: @theme_fg;
+}
+
+thunar .sidebar .view, ThunarShortcutsPane .view,
+placessidebar .view, GtkPlacesSidebar .view {
+  background-color: transparent;
+  color: @theme_fg;
+}
+
+thunar .sidebar .view:selected,
+placessidebar .view:selected,
+GtkPlacesSidebar .view:selected {
+  background: alpha(@ACCENT_RGB@, 0.2);
+  color: @theme_fg;
+}
+
+thunar .sidebar .view:hover,
+placessidebar .view:hover,
+GtkPlacesSidebar .view:hover {
+  background: alpha(@FG_RGB@, 0.05);
+}
+
+thunar .location-entry {
+  background-color: alpha(@BG_RGB@, 0.6);
+  color: @theme_fg;
+}
+
+thunar GtkPaned > separator {
+  background-color: @BORDER@;
+  min-width: 1px;
+}
+
+thunar GtkViewport { background-color: @theme_bg; }
+
+ThunarLocationBar {
+  background-color: @theme_panel;
+  color: @theme_fg;
+}
+
+ThunarLocationEntry {
+  background-color: alpha(@BG_RGB@, 0.6);
+  color: @theme_fg;
+}
+
+ThunarStatusBar {
+  background-color: @theme_panel;
+  color: alpha(@FG_RGB@, 0.7);
+  border-top: 1px solid @BORDER@;
+}
+
+ThunarPathBar button {
+  background: transparent;
+  color: @theme_fg;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+ThunarPathBar button:hover {
+  background: alpha(@ACCENT_RGB@, 0.1);
+  border-color: alpha(@ACCENT_RGB@, 0.2);
+}
+
+ThunarPathBar button:checked {
+  background: alpha(@ACCENT_RGB@, 0.15);
+  color: @theme_accent;
+}
+
+VteTerminal, TerminalScreen, vte-terminal {
+  background-color: @theme_bg;
+  color: @theme_fg;
+}
+
+VteTerminal:selected, TerminalScreen:selected, vte-terminal:selected {
+  background-color: alpha(@ACCENT_RGB@, 0.35);
+}
+
+*:selected, selection {
+  background-color: alpha(@ACCENT_RGB@, 0.22);
+  color: @theme_fg;
+}
+
+*:disabled { opacity: 0.45; }
+
+calendar {
+  background-color: @theme_bg;
+  color: @theme_fg;
+  border: 1px solid @BORDER@;
+  border-radius: 6px;
+  padding: 4px;
+}
+
+calendar:selected {
+  background-color: alpha(@ACCENT_RGB@, 0.25);
+  color: @theme_accent;
+}
+
+paned > separator {
+  background-color: @BORDER@;
+  min-width: 1px;
+}
+
+statusbar {
+  background-color: @theme_panel;
+  color: alpha(@FG_RGB@, 0.7);
+  border-top: 1px solid @BORDER@;
+  padding: 2px 6px;
+}

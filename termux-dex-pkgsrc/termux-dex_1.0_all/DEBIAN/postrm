@@ -1,0 +1,24 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# ============================================================
+#   termux-dex — postrm
+#   Only acts on full purge. A plain `pkg uninstall` leaves
+#   the user's apps, themes, and config untouched.
+# ============================================================
+set -e
+
+HOME=/data/data/com.termux/files/home
+ACTION="$1"
+
+if [ "$ACTION" = "purge" ]; then
+    echo ""
+    echo "🧹 termux-dex: purge — removing widget shortcuts created by setup.sh"
+
+    rm -f "$HOME/.shortcuts/Start Desktop.sh" \
+          "$HOME/.shortcuts/Manage Apps.sh" \
+          "$HOME/.shortcuts/Change Theme.sh" 2>/dev/null
+
+    echo "   (Installed apps, themes, and xrdp config were left in place —"
+    echo "    remove those manually with manage-apps.sh / pkg if you want them gone too.)"
+fi
+
+exit 0

@@ -1,0 +1,49 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Keep package installation fast — heavy desktop packages are installed by
+# setup.sh only after the user chooses a profile.
+set -e
+
+HOME=/data/data/com.termux/files/home
+PREFIX=/data/data/com.termux/files/usr
+SCRIPTS=(setup.sh start-desktop.sh dashboard.sh manage-apps.sh theme.sh)
+
+echo ""
+echo "termux-dex: package files installed."
+echo ""
+
+# Make all scripts executable
+for f in "${SCRIPTS[@]}"; do
+    [ -f "$HOME/$f" ] && chmod +x "$HOME/$f"
+done
+
+# Install 'startdesktop' command so the user can type it anywhere
+STARTDESKTOP_BIN="$PREFIX/bin/startdesktop"
+cat > "$STARTDESKTOP_BIN" << 'EOF'
+#!/data/data/com.termux/files/usr/bin/bash
+# startdesktop — launches your Termux Desktop
+# Usage:
+#   startdesktop          -> Termux:X11 (default, fastest)
+#   startdesktop rdp      -> xRDP (Windows Remote Desktop)
+#   startdesktop novnc    -> noVNC (browser access)
+#   startdesktop menu     -> pick mode interactively
+#   startdesktop stop     -> kill the desktop session
+exec bash /data/data/com.termux/files/home/start-desktop.sh "${@}"
+EOF
+chmod +x "$STARTDESKTOP_BIN"
+
+if [ ! -f "$HOME/setup.sh" ]; then
+    echo "setup.sh missing from $HOME — package may be corrupted."
+    echo "Try: pkg reinstall termux-dex"
+    exit 0
+fi
+
+echo "Next step — run setup (fully automatic, no prompts):"
+echo ""
+echo "  bash ~/setup.sh"
+echo ""
+echo "Then start your desktop anytime with:"
+echo ""
+echo "  startdesktop"
+echo ""
+
+exit 0

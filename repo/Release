@@ -1,0 +1,7 @@
+Origin: termux-dex
+Label: Termux Desktop
+Suite: stable
+Codename: stable
+Architectures: all aarch64 arm x86_64 i686
+Components: main
+Description: Termux Desktop lightweight installer and launcher for Android

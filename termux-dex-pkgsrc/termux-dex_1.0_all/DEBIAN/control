@@ -1,0 +1,23 @@
+Package: termux-dex
+Version: 1.5
+Architecture: all
+Maintainer: Tanmay-1122 <https://github.com/Tanmay-1122>
+Depends: bash
+Description: Termux Desktop - lightweight installer and launcher for Android
+ Installs the termux-dex setup and desktop launcher scripts without forcing
+ a large desktop download during package installation.
+ .
+ v1.5 update: extracted shared lib.sh, GTK CSS template, added uninstall
+ script, SHA-256 integrity verification, unified VERSION numbering,
+ auto-install missing xrdp in RDP mode, CI fixes, ASCII-only output.
+ .
+ v1.2 fixes: missing apt Release file, shell-killing pgrep bug, set -e
+ footgun in install.sh, termux-x11-nightly step ordering, ifconfig
+ replaced with ip command on all scripts, arch guard for armv7 devices,
+ storage pre-flight check, cache-aware pkg update in manage-apps.sh.
+ .
+ Run setup.sh after install to fetch the desktop packages you actually want:
+ minimal for a fast Termux:X11 setup, standard for useful tools, or full for
+ the larger app catalogue.
+ .
+ Homepage: https://github.com/Tanmay-1122/Termux-desktop

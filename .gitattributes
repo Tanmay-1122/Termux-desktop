@@ -1,0 +1,25 @@
+# Force LF line endings for all shell scripts and text files
+# This prevents Windows CRLF from breaking bash scripts on Android/Linux
+
+* text=auto eol=lf
+
+# Shell scripts must always use LF
+*.sh    text eol=lf
+install.sh text eol=lf
+build.sh   text eol=lf
+
+# Debian package files must use LF
+DEBIAN/control   text eol=lf
+DEBIAN/postinst  text eol=lf
+DEBIAN/postrm    text eol=lf
+
+# Apt repository files must use LF
+repo/Packages    text eol=lf
+repo/Release     text eol=lf
+
+# Binary files — never touch line endings
+*.deb    binary
+*.gz     binary
+*.png    binary
+*.jpg    binary
+*.zip    binary
