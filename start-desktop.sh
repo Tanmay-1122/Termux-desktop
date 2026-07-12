@@ -112,6 +112,34 @@ get_ip() {
     echo "$addr"
 }
 
+list_all_ips() {
+    local ips=""
+    if command -v ip &>/dev/null; then
+        ips=$(ip -4 addr show | grep -oE 'inet [0-9.]+' | awk '{print $2}' | grep -v '^127\.')
+    elif command -v ifconfig &>/dev/null; then
+        ips=$(ifconfig | grep -oE 'inet [0-9.]+' | awk '{print $2}' | grep -v '^127\.')
+    fi
+    echo "$ips"
+}
+
+detect_best_ip() {
+    local route_ip=""
+    if command -v ip &>/dev/null; then
+        route_ip=$(ip route get 8.8.8.8 2>/dev/null | grep -oP 'src \K[\d.]+' | head -1)
+    fi
+    if [ -n "$route_ip" ]; then echo "$route_ip"; return; fi
+
+    if command -v hostname &>/dev/null; then
+        local host_ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+        if [ -n "$host_ip" ]; then echo "$host_ip"; return; fi
+    fi
+
+    local first=$(list_all_ips | head -1)
+    if [ -n "$first" ]; then echo "$first"; return; fi
+
+    echo ""
+}
+
 WIFI_IP=""
 USB_IP=""
 USB_IFACE=""
@@ -126,16 +154,10 @@ for iface in rndis0 usb0 eth0 rmnet_usb0; do
     if [ -n "$IP" ]; then USB_IP="$IP"; USB_IFACE="$iface"; break; fi
 done
 
-if [ -z "$WIFI_IP" ] && [ -z "$USB_IP" ]; then
-    for iface in /sys/class/net/*; do
-        name=$(basename "$iface")
-        [ "$name" = "lo" ] && continue
-        IP=$(get_ip "$name")
-        if [ -n "$IP" ]; then WIFI_IP="$IP"; break; fi
-    done
-fi
-
 BEST_IP="${WIFI_IP:-$USB_IP}"
+if [ -z "$BEST_IP" ]; then
+    BEST_IP=$(detect_best_ip)
+fi
 
 # ── Argument Parsing ─────────────────────────────────────────
 MODE="x11"
