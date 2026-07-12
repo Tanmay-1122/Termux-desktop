@@ -220,22 +220,30 @@ install_pkgs() {
     if command -v eatmydata &>/dev/null && eatmydata true 2>/dev/null; then
         wrapper=(eatmydata)
     fi
+    local fail_log="${LOG_FILE}.lastfail"
     while [ $attempt -le $MAX_RETRIES ]; do
         log "Installing $label (attempt $attempt): $pkgs"
         if spinner_run "$label" "$LOG_FILE" "${wrapper[@]}" pkg install -y $pkgs; then
             ok "$label installed"
+            rm -f "$fail_log" 2>/dev/null || true
             return 0
         fi
+        # Save the real failure output before recovery commands overwrite $LOG_FILE
+        cp "$LOG_FILE" "$fail_log" 2>/dev/null || true
         warn "$label attempt $attempt failed, retrying..."
         # If eatmydata itself is the problem, drop it after the first failure
         if [ ${#wrapper[@]} -gt 0 ]; then
             warn "Retrying without eatmydata wrapper (it can be unreliable on some devices)"
             wrapper=()
         fi
-        spinner_run "$label (dpkg fix)" "$LOG_FILE" dpkg --configure -a
-        spinner_run "$label (apt fix)" "$LOG_FILE" apt --fix-broken install -y
+        # NOTE: these recovery commands are allowed to fail (that's normal —
+        # e.g. "nothing to configure"), so each is guarded with `|| true`.
+        # Without this, `set -e` at the top of the script would kill the
+        # entire installer silently the moment one of them returned non-zero.
+        spinner_run "$label (dpkg fix)" "$LOG_FILE" dpkg --configure -a || true
+        spinner_run "$label (apt fix)" "$LOG_FILE" apt --fix-broken install -y || true
         # If the log shows fetch/mirror errors, fall back to the official CDN mirror
-        if grep -qiE '404|Could not resolve|Connection (refused|timed out)|Failed to fetch|Temporary failure' "$LOG_FILE" 2>/dev/null; then
+        if grep -qiE '404|Could not resolve|Connection (refused|timed out)|Failed to fetch|Temporary failure' "$fail_log" 2>/dev/null; then
             warn "Mirror looks broken — resetting to the official Termux mirror"
             cat > "$PREFIX/etc/apt/sources.list" << RESET_EOF
 deb https://packages-cf.termux.dev/apt/termux-main stable main
@@ -243,13 +251,13 @@ RESET_EOF
             rm -f "$PREFIX/etc/apt/sources.list.d/"*x11* 2>/dev/null || true
             pkg install -y x11-repo -o Dpkg::Options::="--force-confnew" >>"$LOG_FILE" 2>&1 || true
         fi
-        spinner_run "$label (pkg update)" "$LOG_FILE" pkg update -y
+        spinner_run "$label (pkg update)" "$LOG_FILE" pkg update -y || true
         attempt=$((attempt + 1))
         countdown_sleep 3
     done
     warn "$label had issues — showing the last lines of the real error:"
-    tail -n 15 "$LOG_FILE" | sed 's/^/      /'
-    warn "Full log: $LOG_FILE"
+    tail -n 20 "$fail_log" 2>/dev/null | sed 's/^/      /' || tail -n 20 "$LOG_FILE" | sed 's/^/      /'
+    warn "Full log: $LOG_FILE  (last real failure saved at: $fail_log)"
     return 1
 }
 
