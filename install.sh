@@ -91,8 +91,6 @@ download() {
 }
 
 # ── aria2 download (faster for large files) ───────────────────
-# Uses aria2c with multi-connection splitting when available.
-# Falls back to curl if aria2 is not installed.
 download_fast() {
     local url="$1" dest="$2"
     local cdn
@@ -113,10 +111,6 @@ download_fast() {
 }
 
 # ── Parallel download batch ───────────────────────────────────
-# Downloads multiple files concurrently using background jobs.
-# Tries jsDelivr CDN first, falls back to GitHub raw.
-# Usage: parallel_download_batch URL_ARRAY DEST_ARRAY
-# Both arguments are variable names of arrays (not the arrays themselves).
 parallel_download_batch() {
     local -n _urls="$1" _dests="$2"
     local pids=() successes=0 n=${#_urls[@]}
@@ -132,7 +126,6 @@ parallel_download_batch() {
         pids+=($!)
     done
 
-    # Show live download status while waiting
     local dl_start=$SECONDS
     while true; do
         local alive=0
@@ -164,10 +157,6 @@ parallel_download_batch() {
 }
 
 # ── Spinner with live progress ──────────────────────────────
-# Runs command in background, shows animated spinner + elapsed
-# time + last significant line from log file.
-# Hides cursor while running, restores on completion.
-# Usage: spinner_run "Label" /path/to/log cmd arg1 arg2 ...
 spinner_run() {
     local label="$1"
     local log_file="$2"
@@ -212,8 +201,6 @@ spinner_run() {
 }
 
 # ── Animated countdown sleep ──────────────────────────────────
-# Replaces silent sleep with a visible countdown.
-# Usage: countdown_sleep <seconds> [message]
 countdown_sleep() {
     local secs="$1" msg="${2:-  waiting}"
     while [ $secs -gt 0 ]; do
@@ -230,7 +217,9 @@ install_pkgs() {
     local pkgs="$*"
     local attempt=1
     local wrapper=()
-    command -v eatmydata &>/dev/null && wrapper=(eatmydata)
+    if command -v eatmydata &>/dev/null && eatmydata true 2>/dev/null; then
+        wrapper=(eatmydata)
+    fi
     while [ $attempt -le $MAX_RETRIES ]; do
         log "Installing $label (attempt $attempt): $pkgs"
         if spinner_run "$label" "$LOG_FILE" "${wrapper[@]}" pkg install -y $pkgs; then
@@ -238,13 +227,29 @@ install_pkgs() {
             return 0
         fi
         warn "$label attempt $attempt failed, retrying..."
+        # If eatmydata itself is the problem, drop it after the first failure
+        if [ ${#wrapper[@]} -gt 0 ]; then
+            warn "Retrying without eatmydata wrapper (it can be unreliable on some devices)"
+            wrapper=()
+        fi
         spinner_run "$label (dpkg fix)" "$LOG_FILE" dpkg --configure -a
         spinner_run "$label (apt fix)" "$LOG_FILE" apt --fix-broken install -y
+        # If the log shows fetch/mirror errors, fall back to the official CDN mirror
+        if grep -qiE '404|Could not resolve|Connection (refused|timed out)|Failed to fetch|Temporary failure' "$LOG_FILE" 2>/dev/null; then
+            warn "Mirror looks broken — resetting to the official Termux mirror"
+            cat > "$PREFIX/etc/apt/sources.list" << RESET_EOF
+deb https://packages-cf.termux.dev/apt/termux-main stable main
+RESET_EOF
+            rm -f "$PREFIX/etc/apt/sources.list.d/"*x11* 2>/dev/null || true
+            pkg install -y x11-repo -o Dpkg::Options::="--force-confnew" >>"$LOG_FILE" 2>&1 || true
+        fi
         spinner_run "$label (pkg update)" "$LOG_FILE" pkg update -y
         attempt=$((attempt + 1))
         countdown_sleep 3
     done
-    warn "$label had issues — check $LOG_FILE"
+    warn "$label had issues — showing the last lines of the real error:"
+    tail -n 15 "$LOG_FILE" | sed 's/^/      /'
+    warn "Full log: $LOG_FILE"
     return 1
 }
 
@@ -287,15 +292,12 @@ if [ ! -d "/data/data/com.termux" ]; then
 fi
 ok "Running inside Termux"
 
-# Check Android version
 ANDROID_VER=$(getprop ro.build.version.release 2>/dev/null || echo "unknown")
 ok "Android $ANDROID_VER"
 
-# Detect GPU
 GPU=$(detect_gpu)
 info "GPU detected: $GPU"
 
-# Check free space
 FREE_KB=$(df /data 2>/dev/null | awk 'NR==2{print $4}')
 FREE_MB=$(( ${FREE_KB:-999999} / 1024 ))
 if [ "$FREE_MB" -lt 500 ] 2>/dev/null; then
@@ -327,6 +329,7 @@ MIRROR_NA=(
     "https://mirrors.utermux.dev/termux/termux-main"
 )
 GLOBAL_FALLBACK="https://packages-cf.termux.dev/apt/termux-main"
+OFFICIAL_X11="https://packages-cf.termux.dev/apt/termux-x11"
 
 # ── Geo-detect region (fast, <2s) ──────────────────────────
 detect_region() {
@@ -361,7 +364,6 @@ test_mirrors_parallel() {
         start_times+=($start_ms)
     done
 
-    # Wait for all, pick fastest
     local best_mirror="" best_time=999999
     for i in "${!pids[@]}"; do
         wait "${pids[$i]}" 2>/dev/null
@@ -387,11 +389,9 @@ info "Finding fastest mirror for your region..."
 FASTEST_MIRROR=""
 
 if command -v wget &>/dev/null; then
-    # Step 1: Detect region
     REGION=$(detect_region)
     info "Region: $REGION"
 
-    # Step 2: Test top mirrors from detected region in parallel
     case "$REGION" in
         asia)          CANDIDATES=("${MIRROR_ASIA[@]}") ;;
         europe)        CANDIDATES=("${MIRROR_EUROPE[@]}") ;;
@@ -401,14 +401,12 @@ if command -v wget &>/dev/null; then
 
     FASTEST_MIRROR=$(test_mirrors_parallel "${CANDIDATES[@]}")
 
-    # Step 3: If regional test failed, test one from each region
     if [ -z "$FASTEST_MIRROR" ]; then
         info "Regional test failed — testing global top mirrors..."
         GLOBAL_CANDIDATES=("${MIRROR_NA[0]}" "${MIRROR_EUROPE[0]}" "${MIRROR_ASIA[0]}")
         FASTEST_MIRROR=$(test_mirrors_parallel "${GLOBAL_CANDIDATES[@]}")
     fi
 
-    # Step 4: Ultimate fallback — CloudFlare CDN
     if [ -z "$FASTEST_MIRROR" ]; then
         FASTEST_MIRROR="$GLOBAL_FALLBACK"
     fi
@@ -417,7 +415,21 @@ fi
 # Apply mirror configuration
 if [ -n "$FASTEST_MIRROR" ]; then
     info "Using mirror: $FASTEST_MIRROR"
-    X11_MIRROR=$(echo "$FASTEST_MIRROR" | sed 's|termux-main|termux-x11|')
+
+    # Only derive a matching x11 mirror URL if that mirror actually serves
+    # a termux-x11 tree. Most community mirrors only carry termux-main, so
+    # blindly rewriting the path (old behaviour) produced a 404 repo entry
+    # and left termux-x11-nightly / xfce4 unresolved. We verify first and
+    # fall back to the official CDN (which always has it) otherwise.
+    X11_MIRROR_CANDIDATE=$(echo "$FASTEST_MIRROR" | sed 's|termux-main|termux-x11|')
+    if [ "$X11_MIRROR_CANDIDATE" != "$FASTEST_MIRROR" ] && \
+       wget -q --timeout=5 --tries=1 -O /dev/null "$X11_MIRROR_CANDIDATE/dists/x11/InRelease" 2>/dev/null; then
+        X11_MIRROR="$X11_MIRROR_CANDIDATE"
+    else
+        X11_MIRROR="$OFFICIAL_X11"
+        info "Regional mirror has no x11 tree — using official x11 mirror instead"
+    fi
+
     mkdir -p "$PREFIX/etc/apt"
     cat > "$PREFIX/etc/apt/sources.list" << MIRROR_EOF
 deb $FASTEST_MIRROR stable main
@@ -493,7 +505,6 @@ mkdir -p "$HOME/.shortcuts"
 mkdir -p "$PREFIX/share/wallpapers"
 mkdir -p "$PREFIX/etc/termux-desktop"
 
-# Download scripts + version + checksums in parallel
 SCRIPT_URLS=() SCRIPT_DESTS=()
 for script in "${SCRIPTS[@]}"; do
     SCRIPT_URLS+=("$REPO_RAW/$script")
@@ -520,15 +531,12 @@ done
 [ -s "$HOME/.termux-desktop-version" ] && ok "VERSION file" || true
 [ -s "$HOME/.termux-desktop-sha256sums" ] && ok "sha256sums.txt" || true
 
-# Verify integrity of downloaded scripts
 if [ -f "$HOME/.termux-desktop-sha256sums" ] && declare -F verify_integrity &>/dev/null; then
     verify_integrity "$HOME/.termux-desktop-sha256sums" "$HOME" || warn "Some files may be corrupted — install anyway"
 fi
 
-# Source lib.sh (downloaded above) for shared functions
 [ -f "$HOME/lib.sh" ] && source "$HOME/lib.sh" 2>/dev/null || true
 
-# Download configs + wallpapers in parallel
 mkdir -p "$PREFIX/share/termux-desktop" "$PREFIX/share/wallpapers" 2>/dev/null
 CONFIG_WALL_URLS=() CONFIG_WALL_DESTS=()
 CONFIG_WALL_URLS+=("$REPO_RAW/picom.conf" "$REPO_RAW/gtk-base.css")
@@ -555,7 +563,6 @@ done
 # ── Step 4: GPU environment setup ────────────────────────────
 step "Configuring GPU acceleration"
 
-# Save GPU config
 cat > "$PREFIX/etc/termux-desktop/gpu.conf" << GPUEOF
 # GPU Configuration
 GPU_NAME=$GPU
@@ -574,7 +581,6 @@ ok "GPU config saved"
 # ── Step 5: Create shortcuts & commands ──────────────────────
 step "Setting up shortcuts and commands"
 
-# Use lib.sh functions if available, otherwise inline
 if declare -F create_widget_shortcuts &>/dev/null; then
     create_widget_shortcuts
 else
@@ -626,7 +632,6 @@ EOF
     ok "'td-update' command installed"
 fi
 
-# Save version marker (already downloaded above, but ensure it exists)
 if [ ! -f "$HOME/.termux-desktop-version" ]; then
     curl -fsSL "$REPO_RAW/VERSION" -o "$HOME/.termux-desktop-version" 2>/dev/null || true
 fi
