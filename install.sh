@@ -386,26 +386,7 @@ if ! apt-cache show xfce4 >/dev/null 2>&1; then
     fi
 fi
 
-# Core packages
-# NOTE: "websockify" is NOT a real Termux apt package (confirmed — it
-# doesn't exist in the Termux repos under that name), which is why it
-# was failing every retry regardless of mirror/x11-repo state. It's
-# only needed for the optional noVNC display mode, so it's installed
-# separately, best-effort, via pip — and its absence no longer blocks
-# the rest of the desktop install.
 install_pkgs "core desktop" xfce4 termux-x11-nightly pulseaudio dbus wget unzip aria2 xrdp tigervnc
-
-info "Installing websockify (needed for noVNC mode)..."
-spinner_run "python (for websockify)" "$LOG_FILE" pkg install -y python || true
-if command -v pip &>/dev/null; then
-    if spinner_run "websockify (pip)" "$LOG_FILE" pip install websockify; then
-        ok "websockify installed"
-    else
-        warn "websockify install failed — 'startdesktop novnc' won't work until you run: pip install websockify"
-    fi
-else
-    warn "pip not available — 'startdesktop novnc' won't work until you run: pkg install python && pip install websockify"
-fi
 
 # GPU drivers
 info "Installing GPU acceleration packages..."
